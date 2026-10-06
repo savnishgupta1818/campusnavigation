@@ -1,0 +1,1170 @@
+<!doctype html><html><head><meta charset=utf8><meta name=viewport content="width=device-width,initial-scale=1,viewport-fit=cover"><style>:root{color-scheme:light;box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}html{scroll-padding-top:env(safe-area-inset-top,0px)}body{margin:0;padding:0;font:14px -apple-system,BlinkMacSystemFont,sans-serif;background:#faf9f5;color:#141413}img{max-width:100%}[hidden]:not([hidden=until-found i]){display:none!important}</style></head><body>
+<title>Campus Compass</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,700&family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap">
+<style>
+/* Layout: a results-and-directions panel on the left, a pannable campus map on the right; on phones the map sits on top. */
+:root {
+  --font-display: 'Bricolage Grotesque', 'Segoe UI', system-ui, sans-serif;
+  --font-body: 'IBM Plex Sans', 'Segoe UI', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', ui-monospace, Menlo, Consolas, monospace;
+
+  --bg: #E6EDED;
+  --panel: #FBFDFD;
+  --soft: #EDF3F3;
+  --ink: #10292C;
+  --muted: #4B6466;
+  --line: #C5D4D5;
+  --accent: #1D4ED8;
+  --accent-ink: #FFFFFF;
+  --accent-soft: #DCE6FF;
+  --start: #0B8A5E;
+  --pin: #D9480F;
+  --warn-bg: #FFF0D6;
+  --warn-ink: #623A00;
+  --ok-bg: #D9F2E6;
+  --ok-ink: #0A5A3C;
+
+  --outside: #D9E3E4;
+  --lawn: #D1E4CF;
+  --road: #FFFFFF;
+  --road-edge: #B6C7C8;
+  --steps: #E9B48A;
+  --bld: #E2E9F1;
+  --bld-hover: #CFDBEA;
+  --bld-edge: #98ACC4;
+  --bld-ink: #16324B;
+  --water: #A8CCE6;
+  --tree: #8CBA89;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #0A1516; --panel: #112123; --soft: #172A2D; --ink: #E3EEEE; --muted: #9AB2B4; --line: #254144;
+    --accent: #86AAFF; --accent-ink: #091A40; --accent-soft: #1A2C54;
+    --start: #35D39A; --pin: #FF8F5A;
+    --warn-bg: #3A2A10; --warn-ink: #FFD9A0; --ok-bg: #12372A; --ok-ink: #9BE8C6;
+    --outside: #0D1B1D; --lawn: #16302A; --road: #2B4549; --road-edge: #172A2D; --steps: #85603E;
+    --bld: #22374A; --bld-hover: #2D4A63; --bld-edge: #456A86; --bld-ink: #D8E7F3; --water: #1E4A66; --tree: #25543A;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #0A1516; --panel: #112123; --soft: #172A2D; --ink: #E3EEEE; --muted: #9AB2B4; --line: #254144;
+  --accent: #86AAFF; --accent-ink: #091A40; --accent-soft: #1A2C54;
+  --start: #35D39A; --pin: #FF8F5A;
+  --warn-bg: #3A2A10; --warn-ink: #FFD9A0; --ok-bg: #12372A; --ok-ink: #9BE8C6;
+  --outside: #0D1B1D; --lawn: #16302A; --road: #2B4549; --road-edge: #172A2D; --steps: #85603E;
+  --bld: #22374A; --bld-hover: #2D4A63; --bld-edge: #456A86; --bld-ink: #D8E7F3; --water: #1E4A66; --tree: #25543A;
+  color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+html, body { height: 100%; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 14px; line-height: 1.45;
+  padding-inline: 16px; padding-block: 12px;
+  display: flex; flex-direction: column; gap: 12px;
+}
+button, input, select { font: inherit; color: inherit; }
+button { cursor: pointer; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* header */
+.top { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex: none; }
+.brand { display: flex; align-items: center; gap: 10px; min-width: 0; }
+.brand svg { flex: none; }
+.brand h1 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.1; letter-spacing: -0.01em; }
+.brand p { margin: 0; color: var(--muted); font-size: 12px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.brand div { min-width: 0; }
+.icon-btn {
+  width: 36px; height: 36px; display: grid; place-items: center; flex: none;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 8px;
+}
+.icon-btn:hover { background: var(--soft); }
+
+.app { flex: 1; min-height: 0; display: grid; grid-template-columns: minmax(340px, 410px) minmax(0, 1fr); gap: 12px; }
+
+/* panel */
+.panel {
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px;
+  display: flex; flex-direction: column; min-height: 0; min-width: 0;
+}
+.controls { padding: 14px; display: flex; flex-direction: column; gap: 12px; border-bottom: 1px solid var(--line); flex: none; }
+.field label.lbl { display: block; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 4px; }
+.field select, .field input[type="text"], .field input[type="search"] {
+  width: 100%; height: 42px; padding: 0 12px; background: var(--soft); border: 1px solid var(--line); border-radius: 8px;
+}
+.field input::placeholder { color: var(--muted); }
+.combo { position: relative; }
+.sug {
+  position: absolute; left: 0; right: 0; top: calc(100% + 4px); z-index: 20; margin: 0; padding: 4px; list-style: none;
+  background: var(--panel); border: 1px solid var(--line); border-radius: 10px; box-shadow: 0 10px 30px rgba(8, 24, 28, 0.22);
+  max-height: 330px; overflow-y: auto;
+}
+.sug li { padding: 8px 10px; border-radius: 6px; cursor: pointer; display: flex; justify-content: space-between; gap: 10px; align-items: baseline; }
+.sug li[aria-selected="true"], .sug li:hover { background: var(--accent-soft); }
+.sug .n { font-weight: 500; min-width: 0; }
+.sug .s { display: block; font-size: 12px; color: var(--muted); font-weight: 400; }
+.sug .d, .row .d { font-family: var(--font-mono); font-size: 12px; color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.sug .none { cursor: default; color: var(--muted); }
+.sug .none:hover { background: transparent; }
+
+.toggle { display: flex; gap: 10px; align-items: flex-start; cursor: pointer; }
+.toggle input { margin: 3px 0 0; width: 18px; height: 18px; accent-color: var(--accent); flex: none; }
+.toggle b { display: block; font-weight: 600; }
+.toggle span { color: var(--muted); font-size: 12px; }
+
+.chips { display: flex; flex-wrap: wrap; gap: 6px; }
+.chip {
+  padding: 5px 11px; border-radius: 999px; background: var(--panel); border: 1px solid var(--line); font-size: 13px;
+}
+.chip:hover { background: var(--soft); }
+.chip[aria-pressed="true"] { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.quick-label { font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); margin-bottom: 6px; }
+
+.out { flex: 1; min-height: 0; overflow-y: auto; padding: 14px; display: flex; flex-direction: column; gap: 12px; }
+
+/* browse list */
+.sec-title { margin: 0; font-family: var(--font-display); font-size: 16px; font-weight: 600; }
+.list { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.row { width: 100%; text-align: left; background: none; border: 0; border-bottom: 1px solid var(--line); padding: 9px 4px; display: flex; justify-content: space-between; gap: 12px; align-items: baseline; }
+.row:hover { background: var(--soft); }
+.row .n { font-weight: 500; }
+.row .s { display: block; font-size: 12px; color: var(--muted); }
+.hint { color: var(--muted); margin: 0; }
+
+/* route */
+.rhead { display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+.eyebrow { margin: 0 0 2px; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--pin); }
+.rhead h2 { margin: 0; font-family: var(--font-display); font-weight: 700; font-size: 22px; line-height: 1.15; text-wrap: balance; }
+.where { margin: 4px 0 0; color: var(--muted); }
+.stats { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 8px; margin: 0; }
+.stats div { background: var(--soft); border-radius: 8px; padding: 8px 10px; min-width: 0; }
+.stats dt { font-size: 11px; color: var(--muted); letter-spacing: 0.06em; text-transform: uppercase; font-weight: 600; }
+.stats dd { margin: 2px 0 0; font-family: var(--font-mono); font-size: 18px; font-weight: 500; font-variant-numeric: tabular-nums; }
+.stats dd small { font-size: 12px; font-family: var(--font-body); color: var(--muted); }
+.badge { display: inline-block; font-family: var(--font-body) !important; font-size: 13px !important; font-weight: 600; padding: 2px 8px; border-radius: 999px; }
+.badge.ok { background: var(--ok-bg); color: var(--ok-ink); }
+.badge.warn { background: var(--warn-bg); color: var(--warn-ink); }
+.alert { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--warn-bg); color: var(--warn-ink); }
+.note { margin: 0; padding: 10px 12px; border-radius: 8px; background: var(--accent-soft); }
+
+.steps { list-style: none; margin: 0; padding: 0; display: flex; flex-direction: column; }
+.steps li { border-bottom: 1px solid var(--line); }
+.steps li:last-child { border-bottom: 0; }
+.step { width: 100%; text-align: left; background: none; border: 0; padding: 10px 4px; display: grid; grid-template-columns: 30px minmax(0, 1fr) auto; gap: 10px; align-items: start; border-radius: 6px; }
+button.step:hover { background: var(--soft); }
+.step[aria-current="true"] { background: var(--accent-soft); }
+.step .ic { width: 30px; height: 30px; border-radius: 50%; display: grid; place-items: center; background: var(--soft); border: 1px solid var(--line); color: var(--ink); }
+.step.start .ic { background: var(--start); border-color: var(--start); color: #fff; }
+.step.arrive .ic { background: var(--pin); border-color: var(--pin); color: #fff; }
+.step.stairs .ic { background: var(--warn-bg); color: var(--warn-ink); border-color: var(--warn-bg); }
+.step .t { font-weight: 600; display: block; }
+.step .dt { display: block; color: var(--muted); font-size: 13px; }
+.step .m { font-family: var(--font-mono); font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums; padding-top: 3px; }
+.divider { margin: 4px 0 0; font-size: 11px; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); }
+.actions { display: flex; gap: 8px; flex-wrap: wrap; }
+.btn { height: 38px; padding: 0 14px; border-radius: 8px; border: 1px solid var(--line); background: var(--panel); font-weight: 500; }
+.btn:hover { background: var(--soft); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: var(--accent-ink); }
+.btn.primary:hover { filter: brightness(1.08); }
+.alts { display: flex; flex-direction: column; gap: 2px; }
+
+/* map */
+.mapwrap { position: relative; background: var(--outside); border: 1px solid var(--line); border-radius: 10px; overflow: hidden; min-height: 300px; min-width: 0; }
+#map { position: absolute; inset: 0; width: 100%; height: 100%; display: block; touch-action: none; cursor: grab; user-select: none; -webkit-user-select: none; }
+#map.dragging { cursor: grabbing; }
+#map { --fs: 12px; }
+.outside { fill: var(--outside); }
+.campus { fill: var(--lawn); stroke: var(--road-edge); stroke-width: 2; }
+.water { fill: var(--water); }
+.tree { fill: var(--tree); }
+.road-edge { stroke: var(--road-edge); stroke-width: 19; stroke-linecap: round; fill: none; }
+.road { stroke: var(--road); stroke-width: 15; stroke-linecap: round; fill: none; }
+.road.steps { stroke: var(--steps); stroke-width: 15; stroke-linecap: butt; stroke-dasharray: 3 3; }
+.spur { stroke: var(--road-edge); stroke-width: 5; stroke-linecap: round; }
+.door { fill: var(--bld-ink); }
+.bld rect { fill: var(--bld); stroke: var(--bld-edge); stroke-width: 2; transition: fill 0.15s; }
+.bld { cursor: pointer; outline: none; }
+.bld:hover rect, .bld:focus-visible rect { fill: var(--bld-hover); }
+.bld:focus-visible rect { stroke: var(--accent); stroke-width: 4; }
+.bld.is-to rect { stroke: var(--pin); stroke-width: 4; fill: var(--bld-hover); }
+.bld.is-from rect { stroke: var(--start); stroke-width: 4; }
+.bld .code { font-family: var(--font-mono); font-weight: 500; fill: var(--bld-ink); font-size: min(var(--fs), 24px); text-anchor: middle; pointer-events: none; }
+.bld .bname { font-family: var(--font-body); fill: var(--bld-ink); font-size: calc(min(var(--fs), 24px) * 0.82); text-anchor: middle; opacity: 0.85; pointer-events: none; }
+#map.names-off .bname { display: none; }
+.plaza { fill: var(--road); stroke: var(--road-edge); stroke-width: 2; }
+.fountain { fill: var(--water); }
+.landmark { font-family: var(--font-body); font-size: calc(var(--fs) * 0.8); fill: var(--bld-ink); opacity: 0.7; text-anchor: middle; pointer-events: none; }
+#map.names-off .landmark { display: none; }
+.gate { fill: none; stroke: var(--bld-ink); stroke-width: 4; stroke-linecap: round; }
+.rt-casing { fill: none; stroke: var(--panel); stroke-width: 11; stroke-linecap: round; stroke-linejoin: round; }
+.rt { fill: none; stroke: var(--accent); stroke-width: 6; stroke-linecap: round; stroke-linejoin: round; }
+.rt-flow { fill: none; stroke: #fff; stroke-width: 2; stroke-linecap: round; stroke-linejoin: round; stroke-dasharray: 2 12; opacity: 0.85; animation: flow 1.2s linear infinite; }
+@keyframes flow { to { stroke-dashoffset: -14; } }
+.seg { fill: none; stroke: var(--pin); stroke-width: 9; stroke-linecap: round; stroke-linejoin: round; opacity: 0.9; }
+.mk-start { fill: var(--start); stroke: #fff; stroke-width: 3; }
+.mk-end { fill: var(--pin); stroke: #fff; stroke-width: 3; }
+.mk-ring { fill: none; stroke: var(--pin); stroke-width: 3; transform-box: fill-box; transform-origin: center; animation: ring 1.8s ease-out infinite; }
+@keyframes ring { from { transform: scale(0.6); opacity: 0.9; } to { transform: scale(2.4); opacity: 0; } }
+@media (prefers-reduced-motion: reduce) { .rt-flow, .mk-ring { animation: none; } .rt-flow { display: none; } .mk-ring { opacity: 0.4; } }
+
+.zoom { position: absolute; right: 10px; top: 10px; display: flex; flex-direction: column; gap: 6px; }
+.legend { position: absolute; left: 10px; bottom: 10px; display: flex; gap: 12px; flex-wrap: wrap; background: var(--panel); border: 1px solid var(--line); border-radius: 8px; padding: 6px 10px; font-size: 12px; max-width: calc(100% - 20px); }
+.legend span { display: inline-flex; align-items: center; gap: 6px; }
+.legend i { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+.legend .l-steps { border-radius: 2px; width: 14px; height: 6px; background: var(--steps); }
+.pop { position: absolute; z-index: 10; width: 240px; background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 12px; box-shadow: 0 10px 30px rgba(8, 24, 28, 0.25); }
+.pop h3 { margin: 0 0 2px; font-family: var(--font-display); font-size: 16px; }
+.pop p { margin: 0 0 10px; color: var(--muted); font-size: 12px; }
+.pop .actions .btn { height: 34px; padding: 0 10px; font-size: 13px; }
+.toast { position: fixed; left: 50%; bottom: calc(18px + env(safe-area-inset-bottom, 0px)); transform: translateX(-50%); background: var(--ink); color: var(--bg); padding: 8px 14px; border-radius: 8px; z-index: 50; font-size: 13px; }
+
+@media (max-width: 899px) {
+  html, body { height: auto; }
+  body { min-height: 100%; }
+  .app { display: flex; flex-direction: column; }
+  .mapwrap { order: -1; height: clamp(300px, 52vh, 480px); flex: none; }
+  .panel { min-height: 0; }
+  .out { overflow: visible; }
+  .brand p { display: none; }
+}
+</style>
+
+<header class="top">
+  <div class="brand">
+    <svg width="38" height="38" viewBox="0 0 38 38" aria-hidden="true"><rect width="38" height="38" rx="9" fill="#1D4ED8"/><circle cx="19" cy="19" r="11" fill="none" stroke="#fff" stroke-width="2"/><path d="M19 9l4 10-4 10-4-10z" fill="#fff"/><path d="M19 9l4 10h-8z" fill="#FF8F5A"/></svg>
+    <div>
+      <h1>Campus Compass</h1>
+      <p>Northfield Institute of Technology · find any lab, office or hall</p>
+    </div>
+  </div>
+  <button class="icon-btn" id="theme" type="button" aria-label="Switch between light and dark theme" title="Switch theme">
+    <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M21 12.8A9 9 0 1 1 11.2 3a7 7 0 0 0 9.8 9.8z"/></svg>
+  </button>
+</header>
+
+<main class="app">
+  <section class="panel" aria-label="Find a place">
+    <div class="controls">
+      <div class="field">
+        <label class="lbl" for="from">I am at</label>
+        <select id="from"></select>
+      </div>
+      <div class="field combo">
+        <label class="lbl" for="q">Where do you want to go?</label>
+        <input id="q" type="text" autocomplete="off" spellcheck="false" placeholder="Try &quot;chemistry lab&quot;, &quot;fee&quot; or &quot;LH 204&quot;"
+          role="combobox" aria-expanded="false" aria-controls="sug" aria-autocomplete="list">
+        <ul class="sug" id="sug" role="listbox" hidden></ul>
+      </div>
+      <label class="toggle" for="acc">
+        <input type="checkbox" id="acc">
+        <div><b>Step-free route</b><span>Avoids stairs and uses lifts. Walking time assumes a slower pace.</span></div>
+      </label>
+      <div>
+        <div class="quick-label">Nearest to me</div>
+        <div class="chips" id="quick"></div>
+      </div>
+    </div>
+    <div class="out" id="out" aria-live="polite"></div>
+  </section>
+
+  <section class="mapwrap" aria-label="Campus map">
+    <svg id="map" viewBox="0 0 1040 640" role="img" aria-label="Map of the campus with the route drawn on it"></svg>
+    <div class="zoom">
+      <button class="icon-btn" id="zin" type="button" aria-label="Zoom in"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M8 3v10M3 8h10"/></svg></button>
+      <button class="icon-btn" id="zout" type="button" aria-label="Zoom out"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 8h10"/></svg></button>
+      <button class="icon-btn" id="zfit" type="button" aria-label="Fit route to screen" title="Fit route"><svg width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2 6V2h4M10 2h4v4M14 10v4h-4M6 14H2v-4"/></svg></button>
+    </div>
+    <div class="legend" aria-hidden="true">
+      <span><i style="background:var(--start)"></i>Start</span>
+      <span><i style="background:var(--pin)"></i>Destination</span>
+      <span><i class="l-steps"></i>Steps</span>
+    </div>
+    <div class="pop" id="pop" hidden></div>
+  </section>
+</main>
+<div class="toast" id="toast" role="status" hidden></div>
+
+<script>/* Campus Compass: data + routing logic (pure, no DOM) */
+(function (root) {
+  'use strict';
+  var PX_M = 0.7; // metres per map unit
+  var WALK = 1.3, WALK_ACC = 1.0; // m/s
+
+  var CAMPUS = {
+    name: 'Northfield Institute of Technology',
+    nodes: {
+      G: { x: 60, y: 320, name: 'Main Gate' },
+      A: { x: 220, y: 320, name: 'Welcome Circle' },
+      B: { x: 420, y: 320, name: 'Fountain Plaza' },
+      C: { x: 640, y: 320, name: 'Clock Tower' },
+      D: { x: 860, y: 320, name: 'East Junction' },
+      N1: { x: 220, y: 190, name: 'Security Corner' },
+      N2: { x: 420, y: 190, name: 'Tech Corner' },
+      N3: { x: 640, y: 190, name: 'Workshop Corner' },
+      N4: { x: 860, y: 190, name: 'Terrace Top' },
+      S1: { x: 220, y: 470, name: 'Parking Corner' },
+      S2: { x: 420, y: 470, name: 'South Crossing' },
+      S3: { x: 640, y: 470, name: 'Sports Crossing' },
+      S4: { x: 860, y: 470, name: 'Hostel Corner' }
+    },
+    // [from, to, street name, hasSteps]
+    edges: [
+      ['G', 'A', 'Entrance Road'],
+      ['A', 'B', 'Central Avenue'], ['B', 'C', 'Central Avenue'], ['C', 'D', 'Central Avenue'],
+      ['N1', 'N2', 'North Walk'], ['N2', 'N3', 'North Walk'], ['N3', 'N4', 'North Walk'],
+      ['S1', 'S2', 'South Walk'], ['S2', 'S3', 'South Walk'], ['S3', 'S4', 'South Walk'],
+      ['N1', 'A', 'West Lane'], ['A', 'S1', 'West Lane'],
+      ['N2', 'B', 'Plaza Road'], ['B', 'S2', 'Plaza Road'],
+      ['N3', 'C', 'Garden Lane'], ['C', 'S3', 'Garden Steps', true],
+      ['N4', 'D', 'Terrace Steps', true], ['D', 'S4', 'Terrace Road']
+    ],
+    // rect [x,y,w,h], door [x,y] sits on a road
+    buildings: [
+      { id: 'ADM', name: 'Administration Block', short: 'Admin Block', rect: [250, 205, 140, 85], door: [350, 320], lift: true, floors: 3, hours: '8:30 am to 5:30 pm, Mon to Sat' },
+      { id: 'LIB', name: 'Central Library', short: 'Library', rect: [455, 205, 150, 85], door: [500, 320], lift: true, floors: 4, hours: '8:00 am to 9:00 pm, Mon to Sat' },
+      { id: 'LH', name: 'Lecture Hall Complex', short: 'Lecture Halls', rect: [675, 205, 150, 85], door: [710, 320], lift: true, floors: 4, hours: '7:30 am to 6:30 pm, Mon to Sat' },
+      { id: 'CAF', name: 'Cafeteria', short: 'Cafeteria', rect: [250, 350, 140, 90], door: [290, 320], lift: false, floors: 2, hours: '7:30 am to 8:00 pm, daily' },
+      { id: 'SCI', name: 'Science Block', short: 'Science Block', rect: [455, 350, 150, 90], door: [580, 320], lift: true, floors: 4, hours: '8:30 am to 5:30 pm, Mon to Sat' },
+      { id: 'HUB', name: 'Student Activity Centre', short: 'Student Hub', rect: [675, 350, 150, 90], door: [790, 320], lift: true, floors: 2, hours: '9:00 am to 8:00 pm, daily' },
+      { id: 'CSE', name: 'Computer Science Block', short: 'CSE Block', rect: [250, 60, 150, 90], door: [320, 190], lift: true, floors: 4, hours: '8:00 am to 8:00 pm, Mon to Sat' },
+      { id: 'ECE', name: 'Electronics Block', short: 'ECE Block', rect: [455, 60, 150, 90], door: [530, 190], lift: false, floors: 2, hours: '8:30 am to 6:00 pm, Mon to Sat' },
+      { id: 'MECH', name: 'Mechanical Workshop Block', short: 'Mech Block', rect: [675, 60, 150, 90], door: [750, 190], lift: false, floors: 2, hours: '8:30 am to 5:00 pm, Mon to Sat' },
+      { id: 'AUD', name: 'Main Auditorium', short: 'Auditorium', rect: [250, 500, 150, 85], door: [320, 470], lift: true, floors: 1, hours: 'During events' },
+      { id: 'SPT', name: 'Sports Complex', short: 'Sports Complex', rect: [455, 500, 150, 85], door: [530, 470], lift: false, floors: 2, hours: '6:00 am to 9:00 pm, daily' },
+      { id: 'HST', name: 'Hostel Block', short: 'Hostel', rect: [675, 500, 150, 85], door: [750, 470], lift: true, floors: 4, hours: 'Residents 24 hours' },
+      { id: 'BANK', name: 'Bank and ATM', short: 'Bank & ATM', rect: [890, 335, 120, 60], door: [860, 365], lift: false, floors: 1, hours: '10:00 am to 4:00 pm, ATM 24 hours' },
+      { id: 'MED', name: 'Health Centre', short: 'Health Centre', rect: [890, 410, 120, 60], door: [860, 440], lift: true, floors: 2, hours: '8:00 am to 8:00 pm, emergencies 24 hours' },
+      { id: 'SEC', name: 'Security and Visitor Centre', short: 'Security Desk', rect: [90, 205, 100, 80], door: [220, 250], lift: false, floors: 1, hours: '24 hours' },
+      { id: 'PRK', name: 'Parking and Bike Stand', short: 'Parking', rect: [70, 360, 120, 90], door: [220, 410], lift: false, floors: 1, hours: '6:00 am to 10:00 pm' }
+    ]
+  };
+
+  var BMAP = {};
+  CAMPUS.buildings.forEach(function (b) { BMAP[b.id] = b; });
+
+  var CATS = [
+    { id: 'all', label: 'All' },
+    { id: 'lab', label: 'Labs' },
+    { id: 'dept', label: 'Departments' },
+    { id: 'office', label: 'Offices' },
+    { id: 'class', label: 'Classrooms & halls' },
+    { id: 'food', label: 'Food' },
+    { id: 'facility', label: 'Facilities' },
+    { id: 'building', label: 'Buildings' }
+  ];
+  var CAT_LABEL = {}; CATS.forEach(function (c) { CAT_LABEL[c.id] = c.label; });
+  CAT_LABEL.class = 'Classroom or hall';
+  CAT_LABEL.lab = 'Lab'; CAT_LABEL.dept = 'Department'; CAT_LABEL.office = 'Office';
+  CAT_LABEL.food = 'Food'; CAT_LABEL.facility = 'Facility'; CAT_LABEL.building = 'Building';
+
+  var QUICK = [
+    { key: 'restroom', label: 'Restroom' },
+    { key: 'water', label: 'Drinking water' },
+    { key: 'food', label: 'Food' },
+    { key: 'atm', label: 'ATM' },
+    { key: 'print', label: 'Print & copy' },
+    { key: 'firstaid', label: 'First aid' }
+  ];
+
+  // [name, building, floor, room, category, keywords, tag]
+  var RAW = [
+    ['Admissions Office', 'ADM', 0, 'Room 004', 'office', 'admission admissions enroll enrolment new student documents verification joining'],
+    ['Accounts & Fee Counter', 'ADM', 0, 'Room 008', 'office', 'fee fees payment cash receipt scholarship dues'],
+    ['Restrooms (Admin Block)', 'ADM', 0, 'Near the lobby', 'facility', 'restroom toilet washroom', 'restroom'],
+    ['Student Affairs Office', 'ADM', 1, 'Room 120', 'office', 'id card bonafide certificate scholarship grievance'],
+    ['Registrar & Exam Section', 'ADM', 1, 'Room 112', 'office', 'exam examination hall ticket marksheet transcript result certificate registrar'],
+    ["Principal's Office", 'ADM', 2, 'Room 201', 'office', 'principal director head'],
+    ['Placement & Training Cell', 'ADM', 2, 'Room 215', 'office', 'placement jobs internship recruiter career training'],
+
+    ['Library Issue & Return Counter', 'LIB', 0, 'Main desk', 'office', 'books borrow return issue membership card'],
+    ['Drinking Water (Library)', 'LIB', 0, 'Lobby', 'facility', 'water cooler drinking', 'water'],
+    ['Restrooms (Library)', 'LIB', 0, 'Ground corridor', 'facility', 'restroom toilet washroom', 'restroom'],
+    ['Central Reading Hall', 'LIB', 1, 'Hall 1', 'facility', 'study reading quiet books'],
+    ['Digital Library & e-Resources', 'LIB', 2, 'Room 210', 'lab', 'journals ebooks computers internet research ieee'],
+    ['Group Study Rooms', 'LIB', 3, 'Rooms 301 to 306', 'facility', 'group discussion study project'],
+
+    ['Computer Science Department Office', 'CSE', 1, 'Room 101', 'dept', 'cse cs computer science hod department office'],
+    ['Programming Lab', 'CSE', 0, 'Lab G2', 'lab', 'coding computers c java python programming'],
+    ['Restrooms (CSE Block)', 'CSE', 0, 'Ground corridor', 'facility', 'restroom toilet washroom', 'restroom'],
+    ['Data Structures Lab', 'CSE', 1, 'Lab 105', 'lab', 'dsa algorithms coding'],
+    ['AI & Machine Learning Lab', 'CSE', 2, 'Lab 204', 'lab', 'ai ml machine learning gpu deep learning'],
+    ['Computer Networks Lab', 'CSE', 2, 'Lab 208', 'lab', 'network networks cisco routers'],
+
+    ['Electronics & Communication Dept. Office', 'ECE', 0, 'Room 003', 'dept', 'ece electronics communication hod department office'],
+    ['Digital Electronics Lab', 'ECE', 0, 'Lab G4', 'lab', 'digital logic circuits'],
+    ['VLSI Design Lab', 'ECE', 1, 'Lab 106', 'lab', 'vlsi chip design cadence'],
+    ['Embedded Systems Lab', 'ECE', 1, 'Lab 110', 'lab', 'embedded arduino microcontroller iot raspberry'],
+
+    ['Mechanical Department Office', 'MECH', 0, 'Room 002', 'dept', 'mech mechanical hod department office'],
+    ['Workshop & Machine Shop', 'MECH', 0, 'Shop floor', 'lab', 'workshop lathe welding fitting carpentry machine'],
+    ['Thermodynamics & Fluids Lab', 'MECH', 0, 'Lab G3', 'lab', 'thermal heat engine fluid'],
+    ['CAD/CAM Lab', 'MECH', 1, 'Lab 102', 'lab', 'cad cam autocad solidworks design 3d printing'],
+
+    ['Physics Lab', 'SCI', 1, 'Lab 103', 'lab', 'physics optics'],
+    ['Chemistry Lab', 'SCI', 1, 'Lab 107', 'lab', 'chemistry titration'],
+    ['Biology Lab', 'SCI', 2, 'Lab 205', 'lab', 'biology biotech microscope'],
+    ['Mathematics Department', 'SCI', 3, 'Room 301', 'dept', 'maths math mathematics department office'],
+    ['Drinking Water (Science Block)', 'SCI', 0, 'Lobby', 'facility', 'water cooler drinking', 'water'],
+    ['Restrooms (Science Block)', 'SCI', 0, 'Ground corridor', 'facility', 'restroom toilet washroom', 'restroom'],
+
+    ['Classrooms LH-101 to LH-312', 'LH', 1, 'Floors 1 to 3', 'class', 'classroom lecture hall lh class room lectures'],
+    ['Seminar Hall A', 'LH', 0, 'Hall A', 'class', 'seminar presentation talk'],
+    ['Seminar Hall B', 'LH', 0, 'Hall B', 'class', 'seminar presentation talk'],
+    ['Examination Hall', 'LH', 0, 'Hall E', 'class', 'exam test paper hall'],
+    ['Drinking Water (Lecture Halls)', 'LH', 0, 'Each landing', 'facility', 'water cooler drinking', 'water'],
+    ['Restrooms (Lecture Halls)', 'LH', 0, 'Each floor', 'facility', 'restroom toilet washroom', 'restroom'],
+
+    ['Main Cafeteria', 'CAF', 0, 'Ground floor', 'food', 'canteen food lunch breakfast meals tea coffee snacks', 'food'],
+    ['Juice & Snack Corner', 'CAF', 0, 'Counter 3', 'food', 'juice snacks shake sandwich tea chai', 'food'],
+    ['Restrooms (Cafeteria)', 'CAF', 0, 'Rear corridor', 'facility', 'restroom toilet washroom', 'restroom'],
+    ['Drinking Water (Cafeteria)', 'CAF', 0, 'Entrance', 'facility', 'water cooler drinking', 'water'],
+    ['Food Court', 'CAF', 1, 'Hall upstairs', 'food', 'food court dosa pizza meals', 'food'],
+
+    ['Print & Photocopy Shop', 'HUB', 0, 'Shop 2', 'facility', 'xerox photocopy print printing stationery scan', 'print'],
+    ['Bookstore & Stationery', 'HUB', 0, 'Shop 1', 'facility', 'books stationery pens notebook'],
+    ['Restrooms (Student Hub)', 'HUB', 0, 'Rear corridor', 'facility', 'restroom toilet washroom', 'restroom'],
+    ['Student Council Office', 'HUB', 1, 'Room 105', 'office', 'council clubs elections'],
+    ['Clubs & Societies Rooms', 'HUB', 1, 'Rooms 110 to 118', 'facility', 'club society music dance coding robotics'],
+
+    ['Auditorium Hall', 'AUD', 0, 'Main hall', 'class', 'auditorium events convocation fest stage programs'],
+    ['Green Room & Backstage', 'AUD', 0, 'Rear wing', 'facility', 'green room backstage rehearsal'],
+
+    ['Gymnasium', 'SPT', 0, 'Gym hall', 'facility', 'gym fitness workout weights'],
+    ['Indoor Courts', 'SPT', 0, 'Courts 1 and 2', 'facility', 'badminton basketball table tennis indoor'],
+    ['Drinking Water (Sports Complex)', 'SPT', 0, 'Lobby', 'facility', 'water cooler drinking', 'water'],
+    ['Restrooms (Sports Complex)', 'SPT', 0, 'Changing area', 'facility', 'restroom toilet washroom', 'restroom'],
+    ['Sports Office', 'SPT', 1, 'Room 101', 'office', 'sports equipment ground pt'],
+
+    ['Hostel Warden Office', 'HST', 0, 'Room 001', 'office', 'warden hostel accommodation room allotment'],
+    ['Hostel Mess', 'HST', 0, 'Mess hall', 'food', 'mess dining food hostel', 'food'],
+    ['Laundry Room', 'HST', 0, 'Room 004', 'facility', 'laundry washing clothes'],
+    ['Drinking Water (Hostel)', 'HST', 0, 'Lobby', 'facility', 'water cooler drinking', 'water'],
+
+    ['Health Centre Reception', 'MED', 0, 'Reception', 'facility', 'doctor clinic medical first aid emergency nurse health', 'firstaid'],
+    ['Pharmacy', 'MED', 0, 'Counter', 'facility', 'medicine pharmacy tablets', 'firstaid'],
+    ['Counselling Centre', 'MED', 1, 'Room 105', 'office', 'counselling counseling wellbeing support'],
+
+    ['ATM', 'BANK', 0, 'Lobby', 'facility', 'atm cash withdraw money', 'atm'],
+    ['Bank Branch', 'BANK', 0, 'Counter hall', 'office', 'bank account passbook deposit loan'],
+
+    ['Security & Visitor Desk', 'SEC', 0, 'Front desk', 'office', 'security visitor pass guard gate'],
+    ['Lost & Found', 'SEC', 0, 'Front desk', 'office', 'lost found missing'],
+
+    ['Bike & Car Parking', 'PRK', 0, 'Open lot', 'facility', 'parking bike cycle car vehicle'],
+    ['EV Charging Points', 'PRK', 0, 'North end', 'facility', 'ev charging electric']
+  ];
+
+  var PLACES = RAW.map(function (r, i) {
+    return { id: 'p' + i, name: r[0], b: r[1], floor: r[2], room: r[3], cat: r[4], kw: r[5], tag: r[6] || '' };
+  });
+  CAMPUS.buildings.forEach(function (b) {
+    PLACES.push({ id: 'b-' + b.id, name: b.name, b: b.id, floor: 0, room: 'Main entrance', cat: 'building', kw: b.id.toLowerCase() + ' ' + b.short.toLowerCase() + ' building block', tag: '' });
+  });
+  var PMAP = {}; PLACES.forEach(function (p) { PMAP[p.id] = p; });
+
+  function floorLabel(f) {
+    return f === 0 ? 'Ground floor' : f === 1 ? '1st floor' : f === 2 ? '2nd floor' : f === 3 ? '3rd floor' : f + 'th floor';
+  }
+
+  /* ---------- graph ---------- */
+  function dist(a, b) { return Math.hypot(a.x - b.x, a.y - b.y); }
+  function segDist(p, a, b) {
+    var vx = b.x - a.x, vy = b.y - a.y;
+    var t = Math.max(0, Math.min(1, ((p.x - a.x) * vx + (p.y - a.y) * vy) / (vx * vx + vy * vy)));
+    return Math.hypot(p.x - (a.x + t * vx), p.y - (a.y + t * vy));
+  }
+
+  function buildGraph() {
+    var nodes = {}, k;
+    for (k in CAMPUS.nodes) nodes[k] = { x: CAMPUS.nodes[k].x, y: CAMPUS.nodes[k].y, name: CAMPUS.nodes[k].name };
+    var edges = CAMPUS.edges.map(function (e) { return { a: e[0], b: e[1], name: e[2], steps: !!e[3] }; });
+    CAMPUS.buildings.forEach(function (b) {
+      var p = { x: b.door[0], y: b.door[1] }, best = -1, bd = 1e9;
+      edges.forEach(function (e, i) {
+        var d = segDist(p, nodes[e.a], nodes[e.b]);
+        if (d < bd) { bd = d; best = i; }
+      });
+      var e = edges[best], id = 'b_' + b.id;
+      nodes[id] = { x: p.x, y: p.y, name: b.name, door: true, bid: b.id };
+      edges.splice(best, 1,
+        { a: e.a, b: id, name: e.name, steps: e.steps },
+        { a: id, b: e.b, name: e.name, steps: e.steps });
+    });
+    var adj = {};
+    for (k in nodes) adj[k] = [];
+    edges.forEach(function (e, i) {
+      e.len = dist(nodes[e.a], nodes[e.b]) * PX_M;
+      adj[e.a].push({ to: e.b, edge: i });
+      adj[e.b].push({ to: e.a, edge: i });
+    });
+    return { nodes: nodes, edges: edges, adj: adj };
+  }
+
+  function dijkstra(g, src, acc) {
+    var d = {}, prev = {}, done = {}, k;
+    for (k in g.nodes) d[k] = Infinity;
+    d[src] = 0;
+    for (;;) {
+      var u = null, best = Infinity;
+      for (k in d) if (!done[k] && d[k] < best) { best = d[k]; u = k; }
+      if (u === null) break;
+      done[u] = true;
+      g.adj[u].forEach(function (n) {
+        var e = g.edges[n.edge];
+        if (acc && e.steps) return;
+        var nd = d[u] + e.len + (e.steps ? 25 : 0);
+        if (nd < d[n.to]) { d[n.to] = nd; prev[n.to] = { from: u, edge: n.edge }; }
+      });
+    }
+    return { dist: d, prev: prev };
+  }
+
+  function pathTo(prev, src, dst) {
+    var nodes = [dst], edges = [], cur = dst;
+    while (cur !== src) {
+      var p = prev[cur];
+      if (!p) return null;
+      edges.unshift(p.edge); nodes.unshift(p.from); cur = p.from;
+    }
+    return { nodes: nodes, edges: edges };
+  }
+
+  function pathLen(g, path) { var t = 0; path.edges.forEach(function (ei) { t += g.edges[ei].len; }); return t; }
+
+  /* ---------- wording helpers ---------- */
+  function bearing(a, b) { return ((Math.atan2(b.x - a.x, -(b.y - a.y)) * 180 / Math.PI) + 360) % 360; }
+  function card(b) { return ['north', 'northeast', 'east', 'southeast', 'south', 'southwest', 'west', 'northwest'][Math.round(b / 45) % 8]; }
+  function normDiff(d) { return ((d % 360) + 540) % 360 - 180; }
+  function center(b) { return { x: b.rect[0] + b.rect[2] / 2, y: b.rect[1] + b.rect[3] / 2 }; }
+  function sideOf(from, to, target) { // heading from->to, is target left or right
+    var hx = to.x - from.x, hy = to.y - from.y;
+    var vx = target.x - to.x, vy = target.y - to.y;
+    return (hx * vy - hy * vx) > 0 ? 'right' : 'left';
+  }
+  function roundM(m) { return Math.max(5, Math.round(m / 5) * 5); }
+
+  var g0 = buildGraph();
+
+  function startName(fromId) {
+    return fromId === 'G' ? 'Main Gate' : BMAP[fromId].name;
+  }
+  function nodeOf(fromId) { return fromId === 'G' ? 'G' : 'b_' + fromId; }
+
+  /* ---------- route planning ---------- */
+  function planRoute(fromId, place, acc, g) {
+    g = g || g0;
+    var b = BMAP[place.b], src = nodeOf(fromId), dst = 'b_' + place.b;
+    var res = dijkstra(g, src, acc);
+    if (!isFinite(res.dist[dst])) return { ok: false, reason: 'No step-free path was found to this building.' };
+    var path = pathTo(res.prev, src, dst);
+    var segs = path.edges.map(function (ei, i) {
+      var a = g.nodes[path.nodes[i]], c = g.nodes[path.nodes[i + 1]];
+      return { e: g.edges[ei], a: a, b: c, from: path.nodes[i], to: path.nodes[i + 1], br: bearing(a, c), len: g.edges[ei].len };
+    });
+    var groups = [];
+    segs.forEach(function (s) {
+      var last = groups[groups.length - 1];
+      if (last && last.name === s.e.name && last.steps === s.e.steps && Math.abs(normDiff(s.br - last.endBr)) < 30) {
+        last.segs.push(s); last.endBr = s.br;
+      } else {
+        groups.push({ name: s.e.name, steps: s.e.steps, segs: [s], startBr: s.br, endBr: s.br });
+      }
+    });
+
+    var steps = [];
+    var fromB = fromId === 'G' ? null : BMAP[fromId];
+    steps.push({ kind: 'start', title: 'Start at ' + (fromB ? fromB.name : 'the Main Gate'), detail: fromB ? 'Come out of the main entrance.' : 'Stand just inside the gate.', m: 0, nodes: [src] });
+
+    var usesSteps = false;
+    groups.forEach(function (gr, i) {
+      var len = 0, ids = [gr.segs[0].from];
+      gr.segs.forEach(function (s) { len += s.len; ids.push(s.to); });
+      var title, kind;
+      if (i === 0) { title = 'Head ' + card(gr.startBr) + ' on ' + gr.name; kind = 'straight'; }
+      else {
+        var d = normDiff(gr.startBr - groups[i - 1].endBr);
+        if (Math.abs(d) < 30) { title = 'Continue onto ' + gr.name; kind = 'straight'; }
+        else if (Math.abs(d) > 150) { title = 'Turn around onto ' + gr.name; kind = 'left'; }
+        else if (d > 0) { title = 'Turn right onto ' + gr.name; kind = 'right'; }
+        else { title = 'Turn left onto ' + gr.name; kind = 'left'; }
+      }
+      if (gr.steps) { kind = 'stairs'; usesSteps = true; }
+      var passes = [];
+      gr.segs.slice(0, -1).forEach(function (s, si) {
+        var n = g.nodes[s.to], nextSeg = gr.segs[si + 1];
+        if (n.door) {
+          if (n.bid === place.b || n.bid === fromId) return;
+          passes.push(BMAP[n.bid].short + ' (on your ' + sideOf(s.a, s.b, center(BMAP[n.bid])) + ')');
+        } else {
+          passes.push(n.name);
+        }
+      });
+      var lastNode = g.nodes[gr.segs[gr.segs.length - 1].to];
+      var endsAtDest = lastNode.door && lastNode.bid === place.b;
+      var sentences = [];
+      if (passes.length) {
+        var list = passes.length > 1 ? passes.slice(0, -1).join(', ') + ' and ' + passes[passes.length - 1] : passes[0];
+        sentences.push('Pass ' + list + '.');
+      }
+      if (gr.steps) sentences.push('This stretch has steps.');
+      sentences.push(endsAtDest ? 'Continue to the ' + b.short + ' entrance.' : 'Continue to ' + lastNode.name + '.');
+      steps.push({ kind: kind, title: title, detail: sentences.join(' '), m: roundM(len), nodes: ids });
+    });
+
+    var lastSeg = segs[segs.length - 1];
+    var arriveDetail = 'You are already here.';
+    if (lastSeg) arriveDetail = 'The main entrance is on your ' + sideOf(lastSeg.a, lastSeg.b, center(b)) + '.';
+    steps.push({ kind: 'arrive', title: 'Arrive at ' + b.name, detail: arriveDetail, m: 0, nodes: [dst] });
+
+    var indoor = [];
+    if (place.cat !== 'building') {
+      indoor.push({ kind: 'door', title: 'Go inside', detail: 'Open ' + b.hours + '.' });
+      if (place.floor > 0) {
+        if (acc) indoor.push({ kind: 'lift', title: b.lift ? 'Take the lift to the ' + floorLabel(place.floor) : 'No lift in this building', detail: b.lift ? 'The lift is near the main lobby.' : 'Only stairs reach the ' + floorLabel(place.floor) + '.' });
+        else indoor.push({ kind: b.lift ? 'lift' : 'stairs', title: 'Go up to the ' + floorLabel(place.floor), detail: b.lift ? 'Use the stairs or the lift near the main lobby.' : 'Use the stairs. This building has no lift.' });
+      }
+      indoor.push({ kind: 'room', title: place.name, detail: place.room + ' on the ' + floorLabel(place.floor).toLowerCase() });
+    }
+
+    var meters = pathLen(g, path);
+    var warnings = [], notes = [];
+    if (acc && place.floor > 0 && !b.lift && place.cat !== 'building') {
+      warnings.push(b.name + ' has no lift, so the ' + floorLabel(place.floor).toLowerCase() + ' can only be reached by stairs. Ask at the building desk or department office about a ground-floor arrangement.');
+    }
+    if (!acc && usesSteps) notes.push('This route includes steps. Turn on step-free routing to avoid them.');
+    if (acc) {
+      var stdRes = dijkstra(g, src, false), std = pathLen(g, pathTo(stdRes.prev, src, dst));
+      if (meters - std >= 10) notes.push('The step-free route is ' + roundM(meters - std) + ' m longer than the shortest path.');
+    }
+    var speed = acc ? WALK_ACC : WALK;
+    return {
+      ok: true, meters: Math.round(meters), minutes: Math.max(1, Math.ceil(meters / speed / 60)),
+      steps: steps, indoor: indoor, warnings: warnings, notes: notes,
+      path: path.nodes, points: path.nodes.map(function (id) { return { x: g.nodes[id].x, y: g.nodes[id].y }; }),
+      stepFree: !usesSteps, dst: dst, src: src
+    };
+  }
+
+  // walking distances from a start to every building door
+  function distancesFrom(fromId, acc, g) {
+    g = g || g0;
+    var d = dijkstra(g, nodeOf(fromId), acc).dist, out = {};
+    CAMPUS.buildings.forEach(function (b) { out[b.id] = d['b_' + b.id]; });
+    return out;
+  }
+
+  /* ---------- search ---------- */
+  function norm(s) { return String(s).toLowerCase().replace(/[^a-z0-9 ]+/g, ' ').replace(/\s+/g, ' ').trim(); }
+
+  function classroomFor(q) {
+    var m = /\blh\s*-?\s*([1-3])\s*(0[1-9]|1[0-2])\b/i.exec(q);
+    if (!m) return null;
+    var n = m[1] + m[2];
+    return { id: 'lh-' + n, name: 'Classroom LH-' + n, b: 'LH', floor: +m[1], room: 'LH-' + n, cat: 'class', kw: '', tag: '' };
+  }
+
+  function search(query, limit) {
+    var q = norm(query);
+    if (!q) return [];
+    var out = [], dyn = classroomFor(query);
+    if (dyn) out.push(dyn);
+    var tokens = q.split(' ');
+    var scored = [];
+    PLACES.forEach(function (p) {
+      var b = BMAP[p.b];
+      var name = norm(p.name);
+      var hay = name + ' ' + norm(b.name) + ' ' + norm(b.short) + ' ' + b.id.toLowerCase() + ' ' + norm(p.room) + ' ' + p.kw + ' ' + norm(CAT_LABEL[p.cat]);
+      var padded = ' ' + hay;
+      for (var i = 0; i < tokens.length; i++) if (padded.indexOf(' ' + tokens[i]) < 0) return;
+      var s = 0;
+      if (name.indexOf(q) === 0) s += 6; else if (name.indexOf(q) >= 0) s += 4;
+      tokens.forEach(function (t) {
+        if (name.indexOf(t) >= 0) s += 2;
+        if (p.kw.indexOf(t) >= 0) s += 1;
+      });
+      if (p.cat === 'building') s -= 0.5;
+      scored.push({ p: p, s: s });
+    });
+    scored.sort(function (a, b) { return b.s - a.s || a.p.name.localeCompare(b.p.name); });
+    scored.forEach(function (x) { out.push(x.p); });
+    return out.slice(0, limit || 8);
+  }
+
+  var api = {
+    CAMPUS: CAMPUS, BMAP: BMAP, PLACES: PLACES, PMAP: PMAP, CATS: CATS, CAT_LABEL: CAT_LABEL, QUICK: QUICK,
+    graph: g0, planRoute: planRoute, distancesFrom: distancesFrom, search: search, classroomFor: classroomFor,
+    floorLabel: floorLabel, startName: startName, nodeOf: nodeOf, center: center, buildGraph: buildGraph, PX_M: PX_M
+  };
+  if (typeof module !== 'undefined' && module.exports) module.exports = api;
+  root.CampusLogic = api;
+})(typeof window !== 'undefined' ? window : globalThis);
+</script>
+<script>/* Campus Compass: interface */
+(function () {
+  'use strict';
+  var L = window.CampusLogic;
+  var CAMPUS = L.CAMPUS, BMAP = L.BMAP, PLACES = L.PLACES, g = L.graph;
+  var NS = 'http://www.w3.org/2000/svg';
+
+  function $(s, r) { return (r || document).querySelector(s); }
+  function esc(s) { return String(s).replace(/[&<>"']/g, function (c) { return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]; }); }
+  function lsGet(k, d) { try { var v = localStorage.getItem(k); return v === null ? d : JSON.parse(v); } catch (e) { return d; } }
+  function lsSet(k, v) { try { localStorage.setItem(k, JSON.stringify(v)); } catch (e) { /* storage unavailable */ } }
+  var reduceMotion = window.matchMedia && window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+
+  var S = {
+    from: lsGet('cc.from', 'G'),
+    acc: lsGet('cc.acc', false),
+    place: null, route: null, quick: null, alts: [],
+    cat: 'all', recent: lsGet('cc.recent', []), activeStep: -1, sug: [], sugIdx: -1
+  };
+  if (S.from !== 'G' && !BMAP[S.from]) S.from = 'G';
+
+  var svg = $('#map'), out = $('#out'), q = $('#q'), sug = $('#sug'), fromSel = $('#from'), pop = $('#pop');
+
+  /* ---------- icons ---------- */
+  var ICONS = {
+    start: '<circle cx="12" cy="12" r="4" fill="currentColor"/>',
+    straight: '<path d="M12 19V6M7 11l5-5 5 5"/>',
+    left: '<path d="M18 19v-6a4 4 0 0 0-4-4H6M10 5L6 9l4 4"/>',
+    right: '<path d="M6 19v-6a4 4 0 0 1 4-4h8M14 5l4 4-4 4"/>',
+    stairs: '<path d="M4 19h4v-4h4v-4h4V7h4"/>',
+    arrive: '<path d="M12 21s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>',
+    door: '<path d="M6 21V4h9v17M3 21h18M12 12h.01"/>',
+    lift: '<rect x="5" y="3" width="14" height="18" rx="1"/><path d="M9 10l3-3 3 3M9 14l3 3 3-3"/>',
+    room: '<path d="M12 21s-6-5.4-6-10a6 6 0 0 1 12 0c0 4.6-6 10-6 10z"/><circle cx="12" cy="11" r="2"/>'
+  };
+  function icon(k) { return '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">' + (ICONS[k] || ICONS.straight) + '</svg>'; }
+
+  /* ---------- map drawing ---------- */
+  function drawStatic() {
+    var s = '';
+    s += '<rect class="outside" x="-400" y="-400" width="1840" height="1440"/>';
+    s += '<rect class="campus" x="20" y="20" width="1000" height="600" rx="22"/>';
+    s += '<ellipse class="water" cx="950" cy="110" rx="46" ry="26"/>';
+    var trees = [[60, 80], [112, 58], [152, 104], [84, 150], [170, 148], [130, 130], [905, 70], [985, 160], [925, 250], [995, 265], [1000, 70], [880, 150], [60, 520], [112, 565], [165, 505], [92, 598], [182, 590], [905, 525], [965, 565], [1000, 505], [935, 600], [425, 112], [632, 112], [843, 100], [432, 590], [622, 600], [842, 595]];
+    trees.forEach(function (t) { s += '<circle class="tree" cx="' + t[0] + '" cy="' + t[1] + '" r="10"/>'; });
+    // outside road leading to the gate
+    s += '<path class="road-edge" d="M-20 320H60"/><path class="road" d="M-20 320H60"/>';
+    CAMPUS.edges.forEach(function (e) {
+      var a = CAMPUS.nodes[e[0]], b = CAMPUS.nodes[e[1]];
+      s += '<line class="road-edge" x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"/>';
+    });
+    CAMPUS.edges.forEach(function (e) {
+      var a = CAMPUS.nodes[e[0]], b = CAMPUS.nodes[e[1]];
+      s += '<line class="road' + (e[3] ? ' steps' : '') + '" x1="' + a.x + '" y1="' + a.y + '" x2="' + b.x + '" y2="' + b.y + '"/>';
+    });
+    s += '<circle class="plaza" cx="420" cy="320" r="20"/><circle class="fountain" cx="420" cy="320" r="8"/>';
+    s += '<rect x="633" y="313" width="14" height="14" rx="2" fill="var(--bld-ink)" opacity="0.75"/>';
+    s += '<path class="gate" d="M60 304v32M60 304h-8M60 336h-8"/>';
+    s += '<text class="landmark" x="420" y="352">Fountain Plaza</text><text class="landmark" x="640" y="352">Clock Tower</text><text class="landmark" x="60" y="354">Main Gate</text><text class="landmark" x="950" y="154">Alumni Pond</text>';
+    CAMPUS.buildings.forEach(function (b) {
+      var x = b.rect[0], y = b.rect[1], w = b.rect[2], h = b.rect[3];
+      var sx = Math.max(x, Math.min(b.door[0], x + w)), sy = Math.max(y, Math.min(b.door[1], y + h));
+      s += '<line class="spur" x1="' + sx + '" y1="' + sy + '" x2="' + b.door[0] + '" y2="' + b.door[1] + '"/>';
+    });
+    CAMPUS.buildings.forEach(function (b) {
+      var x = b.rect[0], y = b.rect[1], w = b.rect[2], h = b.rect[3];
+      s += '<g class="bld" data-id="' + b.id + '" tabindex="0" role="button" aria-label="' + esc(b.name) + '">' +
+        '<rect x="' + x + '" y="' + y + '" width="' + w + '" height="' + h + '" rx="6"/>' +
+        '<text class="code" x="' + (x + w / 2) + '" y="' + (y + h / 2 - 1) + '">' + b.id + '</text>' +
+        '<text class="bname" x="' + (x + w / 2) + '" y="' + (y + h / 2 + 18) + '">' + esc(b.short) + '</text></g>';
+    });
+    CAMPUS.buildings.forEach(function (b) { s += '<circle class="door" cx="' + b.door[0] + '" cy="' + b.door[1] + '" r="3.5"/>'; });
+    s += '<g id="dyn"></g>';
+    svg.innerHTML = s;
+  }
+
+  function pts(arr) { return arr.map(function (p) { return p.x + ',' + p.y; }).join(' '); }
+
+  function drawRoute() {
+    var dyn = $('#dyn'), r = S.route, html = '';
+    document.querySelectorAll('.bld').forEach(function (el) {
+      el.classList.toggle('is-to', !!(S.place && el.getAttribute('data-id') === S.place.b));
+      el.classList.toggle('is-from', S.from !== 'G' && el.getAttribute('data-id') === S.from);
+    });
+    if (r && r.ok) {
+      html += '<polyline class="rt-casing" points="' + pts(r.points) + '"/><polyline class="rt" points="' + pts(r.points) + '"/><polyline class="rt-flow" points="' + pts(r.points) + '"/>';
+      if (S.activeStep >= 0 && r.steps[S.activeStep] && r.steps[S.activeStep].nodes.length > 1) {
+        html += '<polyline class="seg" points="' + pts(r.steps[S.activeStep].nodes.map(function (id) { return g.nodes[id]; })) + '"/>';
+      }
+      var a = r.points[0], b = r.points[r.points.length - 1];
+      html += '<circle class="mk-start" cx="' + a.x + '" cy="' + a.y + '" r="9"/>';
+      html += '<circle class="mk-ring" cx="' + b.x + '" cy="' + b.y + '" r="9"/><circle class="mk-end" cx="' + b.x + '" cy="' + b.y + '" r="10"/>';
+    } else {
+      var sn = g.nodes[L.nodeOf(S.from)];
+      html += '<circle class="mk-start" cx="' + sn.x + '" cy="' + sn.y + '" r="9"/>';
+    }
+    dyn.innerHTML = html;
+  }
+
+  /* ---------- pan and zoom ---------- */
+  var FULL = { minx: 0, miny: 0, maxx: 1040, maxy: 640 };
+  var view = { x: 0, y: 0, w: 1040, h: 640 };
+  function size() { var r = svg.getBoundingClientRect(); return { w: r.width || 800, h: r.height || 500 }; }
+  function scaleNow() { var s = size(); return Math.min(s.w / view.w, s.h / view.h) || 1; }
+  function applyView() {
+    svg.setAttribute('viewBox', view.x.toFixed(1) + ' ' + view.y.toFixed(1) + ' ' + view.w.toFixed(1) + ' ' + view.h.toFixed(1));
+    var sc = scaleNow();
+    svg.style.setProperty('--fs', Math.min(12 / sc, 26).toFixed(2) + 'px');
+    svg.classList.toggle('names-off', sc < 0.6);
+  }
+  function fitBox(box, pad, minW) {
+    var s = size(), asp = s.w / s.h;
+    var w = box.maxx - box.minx + pad * 2, h = box.maxy - box.miny + pad * 2;
+    if (w / h < asp) w = h * asp; else h = w / asp;
+    if (w < minW) { w = minW; h = w / asp; }
+    var cx = (box.minx + box.maxx) / 2, cy = (box.miny + box.maxy) / 2;
+    return { x: cx - w / 2, y: cy - h / 2, w: w, h: h };
+  }
+  function boxOf(points) {
+    var b = { minx: 1e9, miny: 1e9, maxx: -1e9, maxy: -1e9 };
+    points.forEach(function (p) { b.minx = Math.min(b.minx, p.x); b.miny = Math.min(b.miny, p.y); b.maxx = Math.max(b.maxx, p.x); b.maxy = Math.max(b.maxy, p.y); });
+    return b;
+  }
+  var anim = 0;
+  function animateTo(t) {
+    cancelAnimationFrame(anim);
+    if (reduceMotion) { view = t; applyView(); return; }
+    var from = { x: view.x, y: view.y, w: view.w, h: view.h }, t0 = performance.now(), dur = 420;
+    (function tick(now) {
+      var k = Math.min(1, (now - t0) / dur), e = 1 - Math.pow(1 - k, 3);
+      view = { x: from.x + (t.x - from.x) * e, y: from.y + (t.y - from.y) * e, w: from.w + (t.w - from.w) * e, h: from.h + (t.h - from.h) * e };
+      applyView();
+      if (k < 1) anim = requestAnimationFrame(tick);
+    })(t0);
+  }
+  function fitRoute(animate) {
+    var target = S.route && S.route.ok ? fitBox(boxOf(S.route.points), 130, 520) : fitBox(FULL, 10, 600);
+    if (animate) animateTo(target); else { view = target; applyView(); }
+  }
+  function zoomAt(f, cx, cy) {
+    var nw = Math.max(200, Math.min(1500, view.w * f)), k = nw / view.w;
+    view = { x: cx - (cx - view.x) * k, y: cy - (cy - view.y) * k, w: nw, h: view.h * k };
+    applyView();
+  }
+  function toSvg(cx, cy) {
+    var r = svg.getBoundingClientRect(), sc = scaleNow();
+    var ox = (r.width - view.w * sc) / 2, oy = (r.height - view.h * sc) / 2;
+    return { x: view.x + (cx - r.left - ox) / sc, y: view.y + (cy - r.top - oy) / sc };
+  }
+  function viewCenter() { return { x: view.x + view.w / 2, y: view.y + view.h / 2 }; }
+
+  var ptrs = {}, dragMoved = false, pinch0 = 0, downPt = null;
+  svg.addEventListener('pointerdown', function (e) {
+    ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+    downPt = { x: e.clientX, y: e.clientY }; dragMoved = false;
+    var ids = Object.keys(ptrs);
+    if (ids.length === 2) { pinch0 = Math.hypot(ptrs[ids[0]].x - ptrs[ids[1]].x, ptrs[ids[0]].y - ptrs[ids[1]].y); }
+  });
+  svg.addEventListener('pointermove', function (e) {
+    var p = ptrs[e.pointerId];
+    if (!p) return;
+    var ids = Object.keys(ptrs);
+    if (ids.length === 2) {
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+      var d = Math.hypot(ptrs[ids[0]].x - ptrs[ids[1]].x, ptrs[ids[0]].y - ptrs[ids[1]].y);
+      if (pinch0 > 0 && d > 0) {
+        var mid = toSvg((ptrs[ids[0]].x + ptrs[ids[1]].x) / 2, (ptrs[ids[0]].y + ptrs[ids[1]].y) / 2);
+        zoomAt(pinch0 / d, mid.x, mid.y); dragMoved = true;
+      }
+      pinch0 = d; return;
+    }
+    if (!dragMoved && Math.hypot(e.clientX - downPt.x, e.clientY - downPt.y) > 5) {
+      dragMoved = true; hidePop(); svg.classList.add('dragging');
+      try { svg.setPointerCapture(e.pointerId); } catch (err) { /* ignore */ }
+    }
+    if (dragMoved) {
+      var sc = scaleNow();
+      view.x -= (e.clientX - p.x) / sc; view.y -= (e.clientY - p.y) / sc;
+      ptrs[e.pointerId] = { x: e.clientX, y: e.clientY };
+      applyView();
+    }
+  });
+  function endPtr(e) { delete ptrs[e.pointerId]; pinch0 = 0; svg.classList.remove('dragging'); }
+  svg.addEventListener('pointerup', endPtr);
+  svg.addEventListener('pointercancel', endPtr);
+  svg.addEventListener('wheel', function (e) {
+    e.preventDefault();
+    var p = toSvg(e.clientX, e.clientY);
+    zoomAt(Math.pow(1.0016, e.deltaY), p.x, p.y);
+  }, { passive: false });
+  $('#zin').addEventListener('click', function () { var c = viewCenter(); zoomAt(0.7, c.x, c.y); });
+  $('#zout').addEventListener('click', function () { var c = viewCenter(); zoomAt(1.4, c.x, c.y); });
+  $('#zfit').addEventListener('click', function () { fitRoute(true); });
+  if (window.ResizeObserver) {
+    new ResizeObserver(function () {
+      var s = size(), asp = s.w / s.h, c = viewCenter();
+      view = { x: c.x - view.w / 2, y: c.y - (view.w / asp) / 2, w: view.w, h: view.w / asp };
+      applyView();
+    }).observe(svg);
+  }
+
+  /* ---------- building popover ---------- */
+  function showPop(id, clientX, clientY) {
+    var b = BMAP[id], wrap = svg.parentElement.getBoundingClientRect();
+    pop.innerHTML = '<h3>' + esc(b.name) + '</h3><p>' + esc(b.hours) + '<br>' + b.floors + (b.floors === 1 ? ' floor' : ' floors') + ' · ' + (b.lift ? 'Lift available' : 'Stairs only') + '</p>' +
+      '<div class="actions"><button class="btn primary" type="button" data-pop="to" data-id="' + id + '">Directions here</button>' +
+      '<button class="btn" type="button" data-pop="from" data-id="' + id + '">Start here</button></div>';
+    pop.hidden = false;
+    var w = 240, h = pop.offsetHeight || 130;
+    var left = Math.max(8, Math.min(clientX - wrap.left - w / 2, wrap.width - w - 8));
+    var top = clientY - wrap.top + 14;
+    if (top + h > wrap.height - 8) top = Math.max(8, clientY - wrap.top - h - 14);
+    pop.style.left = left + 'px'; pop.style.top = top + 'px';
+  }
+  function hidePop() { pop.hidden = true; }
+  svg.addEventListener('click', function (e) {
+    if (dragMoved) { dragMoved = false; return; }
+    var el = e.target.closest ? e.target.closest('.bld') : null;
+    if (el) showPop(el.getAttribute('data-id'), e.clientX, e.clientY); else hidePop();
+  });
+  svg.addEventListener('keydown', function (e) {
+    var el = e.target.closest ? e.target.closest('.bld') : null;
+    if (el && (e.key === 'Enter' || e.key === ' ')) {
+      e.preventDefault();
+      var r = el.getBoundingClientRect();
+      showPop(el.getAttribute('data-id'), r.left + r.width / 2, r.top + r.height / 2);
+    }
+    if (e.key === 'Escape') hidePop();
+  });
+  pop.addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-pop]');
+    if (!btn) return;
+    var id = btn.getAttribute('data-id');
+    if (btn.getAttribute('data-pop') === 'to') {
+      var bp = PLACES.filter(function (p) { return p.id === 'b-' + id; })[0];
+      choose(bp);
+    } else {
+      S.from = id; lsSet('cc.from', id); fromSel.value = id; refresh(true);
+    }
+    hidePop();
+  });
+
+  /* ---------- state changes ---------- */
+  function fmtDist(m) { return m == null || !isFinite(m) ? '' : Math.round(m / 5) * 5 + ' m'; }
+  function distMap() { return L.distancesFrom(S.from, S.acc); }
+
+  function choose(p, keepQuick) {
+    S.place = p; S.activeStep = -1;
+    if (!keepQuick) { S.quick = null; S.alts = []; }
+    q.value = p.name; closeSug();
+    if (p.id.indexOf('lh-') !== 0) {
+      S.recent = [p.id].concat(S.recent.filter(function (x) { return x !== p.id; })).slice(0, 5);
+      lsSet('cc.recent', S.recent);
+    }
+    refresh(true);
+  }
+  function clearPlace() {
+    S.place = null; S.route = null; S.quick = null; S.alts = []; S.activeStep = -1; q.value = '';
+    refresh(true); q.focus();
+  }
+  function refresh(fit) {
+    S.route = S.place ? L.planRoute(S.from, S.place, S.acc) : null;
+    renderQuick(); renderPanel(); drawRoute();
+    if (fit) fitRoute(true);
+  }
+
+  /* ---------- quick "nearest" ---------- */
+  function renderQuick() {
+    $('#quick').innerHTML = L.QUICK.map(function (k) {
+      return '<button class="chip" type="button" data-q="' + k.key + '" aria-pressed="' + (S.quick === k.key) + '">' + esc(k.label) + '</button>';
+    }).join('');
+  }
+  function nearest(key) {
+    var d = distMap();
+    var list = PLACES.filter(function (p) { return p.tag === key; })
+      .map(function (p) { return { p: p, d: d[p.b] }; })
+      .filter(function (x) { return isFinite(x.d); })
+      .sort(function (a, b) { return a.d - b.d || a.p.floor - b.p.floor; });
+    // one result per building so the list stays useful
+    var seen = {}, uniq = [];
+    list.forEach(function (x) { if (!seen[x.p.b]) { seen[x.p.b] = 1; uniq.push(x); } });
+    return uniq;
+  }
+  $('#quick').addEventListener('click', function (e) {
+    var btn = e.target.closest('button[data-q]');
+    if (!btn) return;
+    var key = btn.getAttribute('data-q');
+    if (S.quick === key) { clearPlace(); return; }
+    var list = nearest(key);
+    if (!list.length) return;
+    S.quick = key; S.alts = list.slice(1, 4);
+    choose(list[0].p, true);
+  });
+
+  /* ---------- search combobox ---------- */
+  function closeSug() { sug.hidden = true; q.setAttribute('aria-expanded', 'false'); q.removeAttribute('aria-activedescendant'); S.sugIdx = -1; }
+  function renderSug() {
+    var term = q.value.trim();
+    if (!term) { closeSug(); return; }
+    var res = L.search(term, 8), d = distMap();
+    S.sug = res; S.sugIdx = res.length ? 0 : -1;
+    if (!res.length) {
+      sug.innerHTML = '<li class="none" role="option" aria-disabled="true">No match for "' + esc(term) + '". Try a department, lab or facility name.</li>';
+    } else {
+      sug.innerHTML = res.map(function (p, i) {
+        var b = BMAP[p.b];
+        return '<li role="option" id="s' + i + '" data-i="' + i + '" aria-selected="' + (i === 0) + '"><span class="n">' + esc(p.name) +
+          '<span class="s">' + esc(b.short) + (p.cat === 'building' ? '' : ' · ' + L.floorLabel(p.floor) + ' · ' + esc(p.room)) + '</span></span><span class="d">' + fmtDist(d[p.b]) + '</span></li>';
+      }).join('');
+    }
+    sug.hidden = false; q.setAttribute('aria-expanded', 'true');
+    if (res.length) q.setAttribute('aria-activedescendant', 's0');
+  }
+  function moveSug(delta) {
+    if (!S.sug.length) return;
+    S.sugIdx = (S.sugIdx + delta + S.sug.length) % S.sug.length;
+    sug.querySelectorAll('li').forEach(function (li, i) { li.setAttribute('aria-selected', String(i === S.sugIdx)); });
+    q.setAttribute('aria-activedescendant', 's' + S.sugIdx);
+    var li = $('#s' + S.sugIdx, sug); if (li && li.scrollIntoView) li.scrollIntoView({ block: 'nearest' });
+  }
+  q.addEventListener('input', renderSug);
+  q.addEventListener('focus', function () { if (q.value.trim() && (!S.place || q.value !== S.place.name)) renderSug(); else q.select(); });
+  q.addEventListener('keydown', function (e) {
+    if (e.key === 'ArrowDown') { e.preventDefault(); if (sug.hidden) renderSug(); else moveSug(1); }
+    else if (e.key === 'ArrowUp') { e.preventDefault(); moveSug(-1); }
+    else if (e.key === 'Enter') { if (!sug.hidden && S.sug[S.sugIdx]) { e.preventDefault(); choose(S.sug[S.sugIdx]); } }
+    else if (e.key === 'Escape') { closeSug(); }
+  });
+  sug.addEventListener('mousedown', function (e) {
+    var li = e.target.closest('li[data-i]');
+    if (li) { e.preventDefault(); choose(S.sug[+li.getAttribute('data-i')]); }
+  });
+  document.addEventListener('click', function (e) { if (!e.target.closest('.combo')) closeSug(); });
+
+  /* ---------- from / accessibility ---------- */
+  fromSel.innerHTML = '<option value="G">Main Gate</option>' + CAMPUS.buildings.slice().sort(function (a, b) { return a.name.localeCompare(b.name); })
+    .map(function (b) { return '<option value="' + b.id + '">' + esc(b.name) + '</option>'; }).join('');
+  fromSel.value = S.from;
+  fromSel.addEventListener('change', function () { S.from = fromSel.value; lsSet('cc.from', S.from); if (S.quick) { var l = nearest(S.quick); if (l.length) { S.alts = l.slice(1, 4); S.place = l[0].p; q.value = S.place.name; } } refresh(true); });
+  var accEl = $('#acc'); accEl.checked = S.acc;
+  accEl.addEventListener('change', function () { S.acc = accEl.checked; lsSet('cc.acc', S.acc); if (S.quick) { var l = nearest(S.quick); if (l.length) { S.alts = l.slice(1, 4); S.place = l[0].p; q.value = S.place.name; } } refresh(true); });
+
+  /* ---------- panel ---------- */
+  function placeRow(p, d, attr) {
+    var b = BMAP[p.b];
+    return '<li><button class="row" type="button" ' + attr + '="' + p.id + '"><span><span class="n">' + esc(p.name) + '</span><span class="s">' + esc(b.short) +
+      (p.cat === 'building' ? '' : ' · ' + L.floorLabel(p.floor) + ' · ' + esc(p.room)) + '</span></span><span class="d">' + fmtDist(d[p.b]) + '</span></button></li>';
+  }
+
+  function renderBrowse() {
+    var d = distMap(), h = '';
+    var recents = S.recent.map(function (id) { return L.PMAP[id]; }).filter(Boolean);
+    if (S.cat === 'all' && recents.length) {
+      h += '<h2 class="sec-title">Recent</h2><ul class="list">' + recents.map(function (p) { return placeRow(p, d, 'data-pick'); }).join('') + '</ul>';
+    }
+    h += '<div><h2 class="sec-title">Browse the campus</h2></div><div class="chips" role="group" aria-label="Filter by type">' +
+      L.CATS.map(function (c) { return '<button class="chip" type="button" data-cat="' + c.id + '" aria-pressed="' + (S.cat === c.id) + '">' + esc(c.label) + '</button>'; }).join('') + '</div>';
+    var list = PLACES.filter(function (p) { return S.cat === 'all' || p.cat === S.cat; })
+      .filter(function (p) { return S.cat !== 'all' || p.cat !== 'building'; })
+      .slice().sort(function (a, b) { return a.name.localeCompare(b.name); });
+    h += '<ul class="list">' + list.map(function (p) { return placeRow(p, d, 'data-pick'); }).join('') + '</ul>';
+    return h;
+  }
+
+  function renderRoute() {
+    var r = S.route, p = S.place, b = BMAP[p.b], h = '';
+    var eyebrow = S.quick ? 'Nearest ' + L.QUICK.filter(function (k) { return k.key === S.quick; })[0].label.toLowerCase() : L.CAT_LABEL[p.cat];
+    h += '<div class="rhead"><div><p class="eyebrow">' + esc(eyebrow) + '</p><h2>' + esc(p.name) + '</h2><p class="where">' + esc(b.name) +
+      (p.cat === 'building' ? '' : ' · ' + L.floorLabel(p.floor) + ' · ' + esc(p.room)) + '</p></div>' +
+      '<button class="icon-btn" type="button" data-act="clear" aria-label="Clear destination"><svg width="16" height="16" viewBox="0 0 16 16" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M3 3l10 10M13 3L3 13"/></svg></button></div>';
+    if (!r.ok) return h + '<p class="alert">' + esc(r.reason) + '</p>';
+    h += '<dl class="stats"><div><dt>Distance</dt><dd>' + r.meters + '<small> m</small></dd></div><div><dt>Walk</dt><dd>' + r.minutes + '<small> min</small></dd></div>' +
+      '<div><dt>Route</dt><dd><span class="badge ' + (r.stepFree ? 'ok' : 'warn') + '">' + (r.stepFree ? 'Step-free' : 'Has steps') + '</span></dd></div></dl>';
+    r.warnings.forEach(function (w) { h += '<p class="alert">' + esc(w) + '</p>'; });
+    r.notes.forEach(function (w) { h += '<p class="note">' + esc(w) + '</p>'; });
+    h += '<ol class="steps">' + r.steps.map(function (s, i) {
+      var inner = '<span class="ic">' + icon(s.kind) + '</span><span><span class="t">' + esc(s.title) + '</span>' + (s.detail ? '<span class="dt">' + esc(s.detail) + '</span>' : '') + '</span><span class="m">' + (s.m ? s.m + ' m' : '') + '</span>';
+      return '<li><button class="step ' + s.kind + '" type="button" data-step="' + i + '"' + (i === S.activeStep ? ' aria-current="true"' : '') + '>' + inner + '</button></li>';
+    }).join('') + '</ol>';
+    if (r.indoor.length) {
+      h += '<p class="divider">Inside ' + esc(b.short) + '</p><ol class="steps">' + r.indoor.map(function (s) {
+        return '<li><div class="step ' + s.kind + '"><span class="ic">' + icon(s.kind) + '</span><span><span class="t">' + esc(s.title) + '</span><span class="dt">' + esc(s.detail) + '</span></span><span></span></div></li>';
+      }).join('') + '</ol>';
+    }
+    if (S.alts.length) {
+      var d = distMap();
+      h += '<p class="divider">Other nearby options</p><ul class="list alts">' + S.alts.map(function (x) { return placeRow(x.p, d, 'data-alt'); }).join('') + '</ul>';
+    }
+    h += '<div class="actions"><button class="btn primary" type="button" data-act="copy">Copy directions</button><button class="btn" type="button" data-act="clear">New search</button></div>';
+    return h;
+  }
+
+  function renderPanel() { out.innerHTML = S.place ? renderRoute() : renderBrowse(); }
+
+  out.addEventListener('click', function (e) {
+    var t;
+    if ((t = e.target.closest('[data-pick]'))) { choose(L.PMAP[t.getAttribute('data-pick')]); return; }
+    if ((t = e.target.closest('[data-alt]'))) { choose(L.PMAP[t.getAttribute('data-alt')], true); return; }
+    if ((t = e.target.closest('[data-cat]'))) { S.cat = t.getAttribute('data-cat'); renderPanel(); return; }
+    if ((t = e.target.closest('[data-step]'))) {
+      var i = +t.getAttribute('data-step'), st = S.route.steps[i];
+      S.activeStep = S.activeStep === i ? -1 : i;
+      renderPanel(); drawRoute();
+      if (S.activeStep >= 0 && st.nodes.length) {
+        animateTo(fitBox(boxOf(st.nodes.map(function (id) { return g.nodes[id]; })), 110, 300));
+        if (window.matchMedia('(max-width: 899px)').matches) svg.parentElement.scrollIntoView({ block: 'start', behavior: reduceMotion ? 'auto' : 'smooth' });
+      } else fitRoute(true);
+      var again = out.querySelector('[data-step="' + i + '"]'); if (again) again.focus({ preventScroll: true });
+      return;
+    }
+    if ((t = e.target.closest('[data-act]'))) {
+      var a = t.getAttribute('data-act');
+      if (a === 'clear') clearPlace();
+      if (a === 'copy') copyDirections();
+    }
+  });
+
+  /* ---------- copy ---------- */
+  function toast(msg) {
+    var el = $('#toast'); el.textContent = msg; el.hidden = false;
+    clearTimeout(toast.t); toast.t = setTimeout(function () { el.hidden = true; }, 2200);
+  }
+  function directionsText() {
+    var r = S.route, p = S.place, b = BMAP[p.b], lines = [];
+    lines.push('Directions to ' + p.name + ' (' + b.name + (p.cat === 'building' ? '' : ', ' + L.floorLabel(p.floor) + ', ' + p.room) + ')');
+    lines.push('From: ' + L.startName(S.from) + ' · ' + r.meters + ' m · about ' + r.minutes + ' min' + (S.acc ? ' · step-free' : ''));
+    var n = 0;
+    r.steps.concat(r.indoor).forEach(function (s) { n++; lines.push(n + '. ' + s.title + (s.detail ? '. ' + s.detail : '')); });
+    r.warnings.forEach(function (w) { lines.push('Note: ' + w); });
+    return lines.join('\n');
+  }
+  function copyDirections() {
+    if (!S.route || !S.route.ok) return;
+    var text = directionsText();
+    function fallback() {
+      var ta = document.createElement('textarea'); ta.value = text; ta.setAttribute('readonly', '');
+      ta.style.cssText = 'width:100%;height:140px;margin-top:8px;background:var(--soft);border:1px solid var(--line);border-radius:8px;padding:8px;color:var(--ink);font:12px var(--font-mono)';
+      out.appendChild(ta); ta.focus(); ta.select(); toast('Select and copy the text below');
+    }
+    if (navigator.clipboard && navigator.clipboard.writeText) navigator.clipboard.writeText(text).then(function () { toast('Directions copied'); }, fallback);
+    else fallback();
+  }
+
+  /* ---------- theme ---------- */
+  var root = document.documentElement;
+  var savedTheme = lsGet('cc.theme', null);
+  if (savedTheme) root.setAttribute('data-theme', savedTheme);
+  $('#theme').addEventListener('click', function () {
+    var cur = root.getAttribute('data-theme') || (window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light');
+    var next = cur === 'dark' ? 'light' : 'dark';
+    root.setAttribute('data-theme', next); lsSet('cc.theme', next);
+  });
+
+  /* ---------- start ---------- */
+  drawStatic();
+  var first = PLACES.filter(function (p) { return p.name === 'Admissions Office'; })[0];
+  S.place = first; q.value = first.name;
+  renderQuick();
+  fitRoute(false);
+  refresh(false);
+  fitRoute(false);
+})();
+</script>
+
+</body></html>
